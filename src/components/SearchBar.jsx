@@ -118,18 +118,8 @@ function SearchBar({ setSelectedImage }) {
   };
 
   const handleTextDblClick = (id) => {
-    const element = elements.find((el) => el.id === id);
-    if (element.type === 'text') {
-      const updatedElements = elements.map((el) =>
-        el.id === id ? { ...el, isEditing: true } : el
-      );
-      setElements(updatedElements);
-    }
-  };
-
-  const handleTextEdit = (id, newText) => {
     const updatedElements = elements.map((el) =>
-      el.id === id ? { ...el, text: newText, isEditing: false } : el
+      el.id === id ? { ...el, isEditing: true } : el
     );
     setElements(updatedElements);
   };
@@ -167,34 +157,37 @@ function SearchBar({ setSelectedImage }) {
         </div>
       </div>
       {error && <div className="text-red-500 p-2">{error}</div>}
-      <div className="results overflow-y-scroll grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4 h-[calc(100vh-16rem)]">
-        {results.map((image) => (
-          <div
-            key={image.id}
-            className="image-item relative group"
-            onMouseEnter={(e) => {
-              e.currentTarget.style.opacity = '0.7';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.opacity = '1';
-            }}
-          >
-            <img
-              src={image.webformatURL}
-              alt={image.tags}
-              className="w-full h-full object-cover rounded-md"
-            />
-            <button
-              className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition duration-500 ease-in-out rounded-md"
-              onClick={() => openModal(image.webformatURL)}
+      <div className="h-screen flex flex-col">
+        <div className="flex-1 overflow-y-scroll grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4">
+          {results.map((image) => (
+            <div
+              key={image.id}
+              className="image-item relative group"
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = '0.7';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = '1';
+              }}
             >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-white font-bold text-2xl">Add Captions</span>
-              </div>
-            </button>
-          </div>
-        ))}
+              <img
+                src={image.webformatURL}
+                alt={image.tags}
+                className="w-full h-full object-cover rounded-md"
+              />
+              <button
+                className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition duration-500 ease-in-out rounded-md"
+                onClick={() => openModal(image.webformatURL)}
+              >
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-white font-bold text-2xl">Add Captions</span>
+                </div>
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
+
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-20">
           <div className="bg-white rounded-md p-4 relative">
@@ -239,7 +232,44 @@ function SearchBar({ setSelectedImage }) {
                 )}
                 {elements.map((element) => {
                   if (element.type === 'text') {
-                    return (
+                    return element.isEditing ? (
+                      <input
+                        key={element.id}
+                        type="text"
+                        value={element.text}
+                        style={{
+                          position: 'absolute',
+                          top: `${element.y}px`,
+                          left: `${element.x}px`,
+                          fontSize: `${element.fontSize}px`,
+                          transform: 'translate(-50%, -50%)',
+                          background: 'transparent',
+                          color: 'black',
+                          border: '1px solid #ccc',
+                          outline: 'none',
+                        }}
+                        onChange={(e) => {
+                          const updatedElements = elements.map((el) =>
+                            el.id === element.id ? { ...el, text: e.target.value } : el
+                          );
+                          setElements(updatedElements);
+                        }}
+                        onBlur={() => {
+                          const updatedElements = elements.map((el) =>
+                            el.id === element.id ? { ...el, isEditing: false } : el
+                          );
+                          setElements(updatedElements);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const updatedElements = elements.map((el) =>
+                              el.id === element.id ? { ...el, isEditing: false } : el
+                            );
+                            setElements(updatedElements);
+                          }
+                        }}
+                      />
+                    ) : (
                       <Text
                         key={element.id}
                         text={element.text}
